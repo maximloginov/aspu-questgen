@@ -11,9 +11,23 @@ pinned: false
 short_description: Генерация тестов
 ---
 
-# Welcome to Streamlit!
 
-Edit `/src/streamlit_app.py` to customize this app to your heart's desire. :heart:
+Дипломная работа "Использование нейронный сетей для создания контрольно-измерительных материалов в обучении"
 
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+# Installation
+
+- Рекомендуется установить виртуальное окружение
+```shell
+python3 -m venv venv
+source venv/bin/activate
+```
+- Установите зависимости
+```shell
+pip3 install -r requirements.txt
+```
+
+# Running
+Запустите скрипт командой:
+```shell
+streamlit run src/streamlit_app.py
+```
