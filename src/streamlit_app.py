@@ -101,24 +101,17 @@ class StreamlitQuizApp:
         if uploaded_file is not None:
             # Display question type configuration
             st.header("Configure Question Types")
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                short_text_count = st.number_input(
+            short_text_count = st.number_input(
                     "Short Text Questions",
                     min_value=0,
                     value=3
                 )
-
-            with col2:
-                mc_count = st.number_input(
+            mc_count = st.number_input(
                     "Multiple Choice Questions",
                     min_value=0,
                     value=3
                 )
-
-            with col3:
-                ordering_count = st.number_input(
+            ordering_count = st.number_input(
                     "Ordering Questions",
                     min_value=0,
                     value=3
@@ -154,10 +147,8 @@ class StreamlitQuizApp:
                     options = question.answers + question.distractors
                     random.shuffle(options)
 
-                    cols = st.columns(len(options))
                     for i, option in enumerate(options):
-                        with cols[i]:
-                            if st.checkbox(
+                        if st.checkbox(
                                 option,
                                 key=f"question_{idx}_option_{i}",
                                 value=True
