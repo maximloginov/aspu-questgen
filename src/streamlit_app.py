@@ -3,10 +3,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Optional
 import PyPDF2
 import json
-from langchain.document_loaders import UnstructuredDocumentLoader
-from langchain.chains.qa import load_qa_chain
-from langchain.prompts import QA_PROMPT_TEMPLATE
-from langchain.llms import AI21
+import random
 
 @dataclass
 class Question:
@@ -19,10 +16,11 @@ class Question:
 
 class TextProcessor:
     def __init__(self):
-        self.doc_loader = UnstructuredDocumentLoader()
+        pass
 
     def extract_sentences(self, text: str) -> List[str]:
-        return [s.strip() for s in text.split('.') if s.strip()]
+        sentences = [s.strip() for s in text.split('.') if s.strip()]
+        return sentences
 
     def analyze_complexity(self, text: str) -> float:
         # Simple complexity metric based on sentence length
@@ -56,12 +54,12 @@ class QuizGenerator:
         self.distractor_gen = DistractorGenerator()
 
     def generate_quiz(self, file_data: str, question_counts: Dict[str, int]) -> List[Question]:
+        sentences = self.processor.extract_sentences(file_data)
         questions = []
-        doc = self.processor.doc_loader.load(file_data)
 
         # Generate short text questions
         for i in range(question_counts['short_text']):
-            sentence = random.choice(doc.pages[0].text.split('.'))
+            sentence = random.choice(sentences)
             question = Question(
                 text=f"What is the main idea of: '{sentence}'?",
                 type='short_text',
@@ -74,7 +72,7 @@ class QuizGenerator:
 
         # Generate multiple choice questions
         for i in range(question_counts['multiple_choice']):
-            sentence = random.choice(doc.pages[0].text.split('.'))
+            sentence = random.choice(sentences)
             question = Question(
                 text=f"What best describes: '{sentence}'?",
                 type='multiple_choice',
@@ -159,13 +157,40 @@ class StreamlitQuizApp:
                     cols = st.columns(len(options))
                     for i, option in enumerate(options):
                         with cols[i]:
-                            if st.checkbox(option, value=True):
+                            if st.checkbox(
+                                option,
+                                key=f"question_{idx}_option_{i}",
+                                value=True
+                            ):
                                 selected_questions.append(idx)
 
                 elif question.type == 'short_text':
-                    st.text_area("Answer:", height=100)
-                    if st.checkbox("Include in export", value=True):
+                    st.text_area(
+                        "Answer:",
+                        height=100,
+                        key=f"question_{idx}_answer"
+                    )
+                    if st.checkbox(
+                        "Include in export",
+                        key=f"question_{idx}_include",
+                        value=True
+                    ):
                         selected_questions.append(idx)
+        # Add export section
+        st.header("Export Questions")
+        format_types = ['JSON', 'TXT', 'GIFT']
+        selected_format = st.selectbox("Select export format", format_types)
+
+        if st.button("Export Questions"):
+            selected_questions = [questions[i] for i in st.session_state.selected_questions]
+            export_data = self.export_questions(selected_questions, selected_format.lower())
+
+            st.download_button(
+                label="Download File",
+                data=export_data,
+                file_name=f"quiz.{selected_format.lower()}",
+                mime=f"application/{selected_format.lower()}"
+            )
 
     def export_questions(self, questions: List[Question], format_type: str):
         if format_type == 'json':
